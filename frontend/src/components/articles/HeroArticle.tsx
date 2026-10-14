@@ -36,14 +36,30 @@ export default function HeroArticle({ article }: Props) {
   return (
     <Link
       href={`/artigo/${article.slug}`}
-      className={`group relative flex min-h-[320px] flex-col justify-end overflow-hidden rounded-2xl border border-border bg-gradient-to-br ${gradient} bg-bg2 p-6 transition-all hover:border-accent/50`}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-bg2 transition-all hover:border-accent/50"
     >
-      {/* Emoji decoration */}
-      <span className="absolute right-6 top-6 text-5xl opacity-20 group-hover:opacity-40 transition-opacity">
-        {emoji}
-      </span>
+      {/* Thumbnail */}
+      <div className="relative h-72 overflow-hidden">
+        {article.image_url ? (
+          <img
+            src={article.image_url}
+            alt={article.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+              target.nextElementSibling?.classList.remove('hidden')
+            }}
+          />
+        ) : null}
+        <div className={`${article.image_url ? 'hidden' : ''} h-72 bg-gradient-to-br ${gradient} flex items-center justify-center text-8xl`}>
+          <span className="z-10">{emoji}</span>
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1d27] to-transparent" />
+      </div>
 
-      <div className="relative flex flex-col gap-3">
+      {/* Content */}
+      <div className="relative flex flex-col gap-3 p-6">
         <span className="w-fit rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-accent">
           {article.category?.name ?? 'Destaque'}
         </span>

@@ -30,6 +30,7 @@ export interface Article {
   slug: string;
   summary: string | null;
   content: string;
+  image_url?: string | null;
   status: 'draft' | 'review' | 'published';
   language: string;
   original_published_at: string | null;

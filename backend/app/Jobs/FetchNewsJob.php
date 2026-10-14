@@ -12,7 +12,6 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class FetchNewsJob implements ShouldQueue
 {
@@ -21,16 +20,13 @@ class FetchNewsJob implements ShouldQueue
     public int $tries   = 3;
     public int $backoff = 60;
 
-    public function __construct(private int $sourceId)
-    {
-    }
+    public function __construct(private int $sourceId) {}
 
     public function handle(): void
     {
         $source = Source::find($this->sourceId);
 
-        if (! $source || ! $source->is_active) {
-            Log::info("FetchNewsJob: source {$this->sourceId} not found or inactive. Skipping.");
+        if (!$source || !$source->is_active) {
             return;
         }
 
@@ -42,41 +38,57 @@ class FetchNewsJob implements ShouldQueue
         ]);
 
         try {
-            $config = $source->configuration ?? [];
+            $config  = $source->configuration ?? [];
+            $fetcher = $this->resolveFetcher($source, $config);
 
-            if (isset($config['apiKeyEnv']) && isset($config['query'])) {
-                $fetcher = new NewsApiSource();
-            } elseif (str_contains($source->base_url, 'jikan')) {
-                $fetcher = new JikanSource();
-            } else {
-                Log::warning("FetchNewsJob: unknown source type for source {$source->id}.");
-                $run->update(['status' => 'failed', 'finished_at' => now()]);
+            if (!$fetcher) {
+                Log::warning("FetchNewsJob: tipo de fonte desconhecido para source {$source->id}.");
+                $run->update(['status' => 'failed', 'finished_at' => now(), 'error_summary' => 'Tipo de fonte não suportado.']);
                 return;
             }
 
             $items = $fetcher->fetch($config);
+            Log::info("FetchNewsJob: {$source->name} retornou " . count($items) . " itens.");
 
             $run->update([
                 'status'          => 'completed',
                 'finished_at'     => now(),
                 'items_processed' => count($items),
-                'items_succeeded' => count($items),
-                'metadata'        => ['fetched_count' => count($items)],
+                'items_succeeded' => 0,
+                'metadata'        => ['items_fetched' => count($items)],
             ]);
 
             $source->update(['last_fetched_at' => now()]);
 
-            if (! empty($items)) {
-                GenerateArticleJob::dispatch($items[0], $source->category_id, $run->id);
+            // Disparar geração de artigo para o item mais relevante (1 por coleta)
+            if (!empty($items)) {
+                GenerateArticleJob::dispatch(
+                    $items[0],
+                    $source->category_id,
+                    $source->id,
+                    $run->id
+                );
             }
-        } catch (Throwable $e) {
+
+        } catch (\Throwable $e) {
             $run->update([
                 'status'        => 'failed',
                 'finished_at'   => now(),
                 'error_summary' => $e->getMessage(),
             ]);
-
-            throw $e;
+            Log::error("FetchNewsJob: erro em {$source->name}", ['error' => $e->getMessage()]);
+            // Não re-throw — deixa o comando continuar para as próximas fontes
         }
+    }
+
+    private function resolveFetcher(Source $source, array $config)
+    {
+        if (isset($config['apiKeyEnv']) || isset($config['query'])) {
+            return new NewsApiSource();
+        }
+        if (str_contains($source->base_url, 'jikan')) {
+            return new JikanSource();
+        }
+        return null;
     }
 }

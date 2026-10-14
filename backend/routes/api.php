@@ -12,7 +12,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories/{slug}', [CategoryController::class, 'show']);
 });
 
-// Admin routes
-Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
+// Rotas admin — auth via Sanctum será adicionado na Fase 5
+Route::prefix('v1/admin')->group(function () {
     Route::apiResource('articles', ArticleController::class)->except(['index', 'show']);
 });

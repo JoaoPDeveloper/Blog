@@ -15,6 +15,7 @@ class Article extends Model
         'slug',
         'summary',
         'content',
+        'image_url',
         'status',
         'language',
         'original_published_at',
