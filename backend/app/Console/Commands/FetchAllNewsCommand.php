@@ -9,23 +9,25 @@ use Illuminate\Console\Command;
 
 class FetchAllNewsCommand extends Command
 {
-    protected $signature = 'news:fetch {--category= : Slug da categoria para filtrar as fontes}';
-
-    protected $description = 'Dispara FetchNewsJob para cada fonte ativa, com filtro opcional por categoria.';
+    protected $signature = 'news:fetch {--category= : ID ou slug da categoria}';
+    protected $description = 'Coleta notícias de todas as fontes ativas e gera artigos com IA';
 
     public function handle(): int
     {
         $query = Source::where('is_active', true);
 
-        if ($categorySlug = $this->option('category')) {
-            $category = Category::where('slug', $categorySlug)->first();
-
-            if (! $category) {
-                $this->error("Categoria '{$categorySlug}' não encontrada.");
-                return self::FAILURE;
+        if ($categoryFilter = $this->option('category')) {
+            // Aceita ID numérico ou slug
+            if (is_numeric($categoryFilter)) {
+                $query->where('category_id', $categoryFilter);
+            } else {
+                $category = Category::where('slug', $categoryFilter)->first();
+                if (!$category) {
+                    $this->error("Categoria '{$categoryFilter}' não encontrada.");
+                    return self::FAILURE;
+                }
+                $query->where('category_id', $category->id);
             }
-
-            $query->where('category_id', $category->id);
         }
 
         $sources = $query->get();
@@ -35,13 +37,24 @@ class FetchAllNewsCommand extends Command
             return self::SUCCESS;
         }
 
+        $ok    = 0;
+        $erros = 0;
+
         foreach ($sources as $source) {
-            FetchNewsJob::dispatch($source->id);
-            $this->info("Job despachado para a fonte: {$source->name}");
+            try {
+                // Com QUEUE_CONNECTION=sync, o job roda imediatamente aqui
+                FetchNewsJob::dispatch($source->id);
+                $this->info("✓ {$source->name}");
+                $ok++;
+            } catch (\Throwable $e) {
+                $this->error("✗ {$source->name}: " . $e->getMessage());
+                $erros++;
+            }
         }
 
-        $this->info("Total: {$sources->count()} job(s) despachados.");
+        $this->newLine();
+        $this->info("Concluído: {$ok} fonte(s) processada(s), {$erros} com erro.");
 
-        return self::SUCCESS;
+        return $erros > 0 ? self::FAILURE : self::SUCCESS;
     }
 }

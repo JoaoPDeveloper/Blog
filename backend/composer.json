@@ -4,7 +4,6 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^11.0",
-        "laravel/sanctum": "^4.0",
         "predis/predis": "^2.0",
         "elasticsearch/elasticsearch": "^8.0",
         "guzzlehttp/guzzle": "^7.0"
@@ -23,9 +22,15 @@
     },
     "scripts": {
         "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        },
+        "sort-packages": true
     },
     "minimum-stability": "stable",
     "prefer-stable": true

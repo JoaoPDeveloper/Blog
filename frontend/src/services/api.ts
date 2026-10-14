@@ -1,32 +1,42 @@
-import axios from 'axios';
-import type { Article, Category, PaginatedResponse } from '@/types';
+import axios from 'axios'
+import type { Article, Category, PaginatedResponse } from '@/types'
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-});
+// Server-side (dentro do Docker): usa o nome do serviço na rede interna
+// Client-side (navegador): usa localhost com a porta exposta
+function getBaseUrl(): string {
+  if (typeof window === 'undefined') {
+    return process.env.API_URL || 'http://backend:8000/api/v1'
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1'
+}
+
+function createApi() {
+  return axios.create({
+    baseURL: getBaseUrl(),
+    timeout: 10000,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+  })
+}
 
 export async function getArticles(params?: {
-  page?: number;
-  per_page?: number;
-  category?: string;
-  search?: string;
+  category?: string
+  search?: string
+  page?: number
+  per_page?: number
 }): Promise<PaginatedResponse<Article>> {
-  const response = await api.get<PaginatedResponse<Article>>('/articles', { params });
-  return response.data;
+  const { data } = await createApi().get<PaginatedResponse<Article>>('/articles', { params })
+  return data
 }
 
 export async function getArticle(slug: string): Promise<Article> {
-  const response = await api.get<Article>(`/articles/${slug}`);
-  return response.data;
+  const { data } = await createApi().get<Article>(`/articles/${slug}`)
+  return data
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const response = await api.get<Category[]>('/categories');
-  return response.data;
+  const { data } = await createApi().get<Category[]>('/categories')
+  return data
 }
-
-export default api;
