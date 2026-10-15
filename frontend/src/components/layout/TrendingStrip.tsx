@@ -33,8 +33,7 @@ export default async function TrendingStrip() {
         {/* Faixa animada — pausa no hover */}
         <div className="overflow-hidden flex-1">
           <div
-            className="flex gap-0 animate-marquee hover:pause-animation"
-            style={{animation: 'marquee 35s linear infinite',}}
+            className="flex gap-0 animate-marquee"
           >
             {doubled.map((title, i) => (
               <span

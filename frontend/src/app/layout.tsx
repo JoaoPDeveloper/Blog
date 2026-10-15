@@ -10,10 +10,6 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'NovaTech — Notícias de IA, Jogos e Animes',
   description: 'As últimas notícias sobre Inteligência Artificial, Jogos e Animes, geradas com assistência de IA.',
-  icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-  },
   openGraph: {
     title: 'NovaTech Blog',
     description: 'Notícias de IA, Jogos e Animes',

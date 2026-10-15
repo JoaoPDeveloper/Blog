@@ -45,7 +45,6 @@ export default function HeroArticle({ article }: Props) {
             src={article.image_url}
             alt={article.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
             onError={(e) => {
               const t = e.currentTarget
               t.style.display = 'none'
