@@ -35,7 +35,6 @@ export default function RootLayout({
       >
         <NextTopLoader
           color="#6c63ff"
-          secondaryColor="#00d4ff"
           height={3}
           showSpinner={false}
           speed={200}
