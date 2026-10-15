@@ -8,6 +8,14 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_pgsql opcache pcntl \
     && rm -rf /var/lib/apt/lists/*
 
+# Configurar OPcache para melhor performance
+RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
+ && echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/opcache.ini \
+ && echo "opcache.interned_strings_buffer=8" >> /usr/local/etc/php/conf.d/opcache.ini \
+ && echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/opcache.ini \
+ && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache.ini \
+ && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/opcache.ini
+
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 

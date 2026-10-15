@@ -1,4 +1,6 @@
 import { getArticles } from '@/services/api';
+
+export const dynamic = 'force-dynamic';
 import ArticleCard from '@/components/articles/ArticleCard';
 import { Search } from 'lucide-react';
 

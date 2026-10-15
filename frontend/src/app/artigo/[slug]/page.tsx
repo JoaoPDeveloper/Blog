@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+
+export const revalidate = 300;
 import { getArticle } from '@/services/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';

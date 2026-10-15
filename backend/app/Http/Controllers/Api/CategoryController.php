@@ -16,7 +16,7 @@ class CategoryController extends Controller
             }])
             ->get();
 
-        return response()->json($categories);
+        return response()->json($categories)->header('Cache-Control', 'public, max-age=600, stale-while-revalidate=300');
     }
 
     public function show(string $slug): JsonResponse
