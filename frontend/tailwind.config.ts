@@ -8,15 +8,7 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      animation: {
-        marquee: 'marquee 35s linear infinite',
-      },
-      keyframes: {
-        marquee: {
-          '0%':   { transform: 'translateX(0)' },
-          '100%': { transform: 'translateX(-50%)' },
-        },
-      },
+      // marquee animation is defined in globals.css (includes hover-pause rule)
       colors: {
         bg: '#0f1117',
         bg2: '#1a1d27',
