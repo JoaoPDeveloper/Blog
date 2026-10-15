@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 
-export const revalidate = 300;
-import { getArticle } from '@/services/api';
+export const dynamic = 'force-dynamic';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Metadata } from 'next';

@@ -3,7 +3,7 @@ import type { Article } from '@/types';
 import HeroArticle from '@/components/articles/HeroArticle';
 import ArticleCard from '@/components/articles/ArticleCard';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   let articles: Article[] = [];
