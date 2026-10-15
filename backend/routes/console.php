@@ -2,10 +2,12 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Agendamento via Schedule será configurado quando a Queue estiver ativa (Fase 3)
-// Schedule::command('news:fetch')->dailyAt('08:00');
+// Coleta de notícias e geração de artigos via IA
+// Roda 2x por dia: 8h e 18h (horário de Brasília, UTC-3 = 11h e 21h UTC)
+Schedule::command('news:fetch')->twiceDaily(8, 18);

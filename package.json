@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.57.0",
+    "next": "^16.4.1",
+    "nextjs-toploader": "^3.9.17"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0"
+  }
+}

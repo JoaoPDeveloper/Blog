@@ -1,0 +1,34 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": 1,
+      "label": "composer.lock not checked in conditional install",
+      "severity": "non-blocking",
+      "confidence": "confirmed",
+      "description": "The entrypoint condition `[ composer.json -nt vendor/autoload.php ]` ignores composer.lock. A lockfile-only update (composer update) silently keeps a stale vendor directory. Fix: add `|| [ composer.lock -nt vendor/autoload.php ]` to the condition."
+    },
+    {
+      "id": 2,
+      "label": "config:cache / route:cache failures silently swallowed",
+      "severity": "non-blocking",
+      "confidence": "confirmed",
+      "description": "`2>/dev/null || true` suppresses all output from both artisan cache commands. A broken .env causes config:cache to fail silently; the server starts without the cache with no log entry. Remove the `2>/dev/null` redirect to surface failures in container logs while keeping `|| true` for graceful degradation."
+    },
+    {
+      "id": 3,
+      "label": "Route segment exports placed mid-import-block",
+      "severity": "non-blocking",
+      "confidence": "confirmed",
+      "description": "`export const revalidate = 300` in artigo/[slug]/page.tsx and `export const dynamic = 'force-dynamic'` in busca/page.tsx are placed between import statements. Both work at runtime (ESM top-level) but confuse static analysis tools and import organizers. Move them after all imports."
+    },
+    {
+      "id": 4,
+      "label": "Search data cached 120 s despite force-dynamic",
+      "severity": "non-blocking",
+      "confidence": "confirmed",
+      "description": "busca/page.tsx sets `dynamic = 'force-dynamic'` (correct for searchParams) but getArticles still passes `next: { revalidate: 120 }`, serving cached results for up to 2 minutes. If search freshness matters, use `cache: 'no-store'` instead or add a getArticlesNoCache variant for this call site."
+    }
+  ],
+  "reviewDoc": "c:\\code\\Blog\\.agents\\tasks\\perf-review.md"
+}

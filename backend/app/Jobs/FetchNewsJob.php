@@ -60,10 +60,14 @@ class FetchNewsJob implements ShouldQueue
 
             $source->update(['last_fetched_at' => now()]);
 
-            // Disparar geração de artigo para o item mais relevante (1 por coleta)
-            if (!empty($items)) {
+            // Gerar até 2 artigos por fonte com pausa entre eles (evitar rate limit do Gemini)
+            $maxPerSource = 2;
+            foreach (array_slice($items, 0, $maxPerSource) as $index => $item) {
+                if ($index > 0) {
+                    sleep(8); // 8s entre chamadas (free tier Gemini: ~10 RPM)
+                }
                 GenerateArticleJob::dispatch(
-                    $items[0],
+                    $item,
                     $source->category_id,
                     $source->id,
                     $run->id
