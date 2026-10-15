@@ -1,39 +1,52 @@
-import { getArticles } from '@/services/api';
+import { getArticles } from '@/services/api'
 
 const fallbackTitles = [
-  'Gemini 2.0 Flash: o modelo de IA mais acessível do Google',
-  'Novos lançamentos de jogos para julho de 2025',
-  'Animes mais esperados da temporada de verão',
-  'OpenAI lança atualização no GPT-4o',
-  'Nintendo anuncia novo título exclusivo',
-];
+  'GPT-5 lançado com capacidades multimodais avançadas',
+  'GTA VI confirma data de lançamento em 2025',
+  'Demon Slayer: Infinity Castle chega ao cinema',
+  'Google Gemini 3.8 supera benchmarks da OpenAI',
+  'Nintendo anuncia novo título para Switch 2',
+]
 
 export default async function TrendingStrip() {
-  let titles: string[] = fallbackTitles;
+  let titles: string[] = fallbackTitles
 
   try {
-    const data = await getArticles({ per_page: 5 });
+    const data = await getArticles({ per_page: 8 })
     if (data.data.length > 0) {
-      titles = data.data.map((a) => a.title);
+      titles = data.data.map((a) => a.title)
     }
   } catch {
     // use fallback
   }
 
+  // Duplicar para loop contínuo
+  const doubled = [...titles, ...titles]
+
   return (
-    <div className="border-b border-border bg-bg3 py-2">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-hidden px-4">
-        <span className="shrink-0 rounded bg-accent px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-white">
-          Em Alta
-        </span>
-        <div className="flex animate-[marquee_30s_linear_infinite] gap-8 whitespace-nowrap">
-          {[...titles, ...titles].map((title, i) => (
-            <span key={i} className="text-sm text-muted">
-              {title}
-            </span>
-          ))}
+    <div className="border-b border-[#2a2d3e] bg-[#1a1d27] py-2.5 overflow-hidden">
+      <div className="flex items-center gap-0">
+        {/* Label fixo */}
+        <div className="shrink-0 bg-[#6c63ff] px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white z-10 relative">
+          🔥 Em Alta
+        </div>
+        {/* Faixa animada — pausa no hover */}
+        <div className="overflow-hidden flex-1">
+          <div
+            className="flex gap-0 animate-marquee hover:pause-animation"
+            style={{animation: 'marquee 35s linear infinite',}}
+          >
+            {doubled.map((title, i) => (
+              <span
+                key={i}
+                className="whitespace-nowrap text-sm text-[#8b8fa8] px-6 border-r border-[#2a2d3e] hover:text-white transition-colors cursor-default"
+              >
+                {title}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

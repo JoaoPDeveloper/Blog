@@ -38,22 +38,26 @@ export default function HeroArticle({ article }: Props) {
       href={`/artigo/${article.slug}`}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-bg2 transition-all hover:border-accent/50"
     >
-      {/* Thumbnail */}
-      <div className="relative h-72 overflow-hidden">
+      {/* Thumbnail com imagem real ou fallback */}
+      <div className="relative h-72 overflow-hidden rounded-t-xl">
         {article.image_url ? (
           <img
             src={article.image_url}
             alt={article.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
             onError={(e) => {
-              const target = e.target as HTMLImageElement
-              target.style.display = 'none'
-              target.nextElementSibling?.classList.remove('hidden')
+              const t = e.currentTarget
+              t.style.display = 'none'
+              const fb = t.nextElementSibling as HTMLElement
+              if (fb) fb.style.display = 'flex'
             }}
           />
         ) : null}
-        <div className={`${article.image_url ? 'hidden' : ''} h-72 bg-gradient-to-br ${gradient} flex items-center justify-center text-8xl`}>
-          <span className="z-10">{emoji}</span>
+        <div
+          className={`${article.image_url ? 'hidden' : 'flex'} h-72 bg-gradient-to-br ${gradient} items-center justify-center text-8xl`}
+        >
+          {emoji}
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-[#1a1d27] to-transparent" />
       </div>
