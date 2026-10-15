@@ -31,7 +31,7 @@ class ArticleController extends Controller
         $articles = $query->orderByDesc('published_at')
             ->paginate($request->integer('per_page', 12));
 
-        return response()->json($articles);
+        return response()->json($articles)->header('Cache-Control', 'public, max-age=120, stale-while-revalidate=60');
     }
 
     public function show(string $slug): JsonResponse
@@ -41,7 +41,7 @@ class ArticleController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        return response()->json($article);
+        return response()->json($article)->header('Cache-Control', 'public, max-age=300, stale-while-revalidate=120');
     }
 
     public function store(Request $request): JsonResponse

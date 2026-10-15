@@ -1,8 +1,6 @@
-import axios from 'axios'
 import type { Article, Category, PaginatedResponse } from '@/types'
 
-// Server-side (dentro do Docker): usa o nome do serviço na rede interna
-// Client-side (navegador): usa localhost com a porta exposta
+// Server-side: nome do serviço Docker; Client-side: localhost com porta exposta
 function getBaseUrl(): string {
   if (typeof window === 'undefined') {
     return process.env.API_URL || 'http://backend:8000/api/v1'
@@ -10,15 +8,16 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1'
 }
 
-function createApi() {
-  return axios.create({
-    baseURL: getBaseUrl(),
-    timeout: 10000,
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-    },
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const url = `${getBaseUrl()}${path}`
+  const res = await fetch(url, {
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    ...options,
   })
+  if (!res.ok) {
+    throw new Error(`API error ${res.status}: ${path}`)
+  }
+  return res.json()
 }
 
 export async function getArticles(params?: {
@@ -27,16 +26,26 @@ export async function getArticles(params?: {
   page?: number
   per_page?: number
 }): Promise<PaginatedResponse<Article>> {
-  const { data } = await createApi().get<PaginatedResponse<Article>>('/articles', { params })
-  return data
+  const qs = params
+    ? '?' + new URLSearchParams(
+        Object.entries(params)
+          .filter(([, v]) => v !== undefined)
+          .map(([k, v]) => [k, String(v)])
+      ).toString()
+    : ''
+  return apiFetch<PaginatedResponse<Article>>(`/articles${qs}`, {
+    next: { revalidate: 120 }, // cache por 2 minutos
+  })
 }
 
 export async function getArticle(slug: string): Promise<Article> {
-  const { data } = await createApi().get<Article>(`/articles/${slug}`)
-  return data
+  return apiFetch<Article>(`/articles/${slug}`, {
+    next: { revalidate: 300 }, // cache por 5 minutos
+  })
 }
 
 export async function getCategories(): Promise<Category[]> {
-  const { data } = await createApi().get<Category[]>('/categories')
-  return data
+  return apiFetch<Category[]>('/categories', {
+    next: { revalidate: 600 }, // categorias mudam pouco — cache por 10 minutos
+  })
 }

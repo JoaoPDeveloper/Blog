@@ -51,7 +51,10 @@ PROMPT;
 
         $response = Http::withoutVerifying() // SSL: instalar ca-certificates no Dockerfile para produção
             ->timeout(30)
-            ->retry(3, 5000, fn($e, $req) => true) // 3 tentativas, 5s de espera
+            ->retry(3, 15000, function ($exception, $request) {
+                // Retry em timeout ou qualquer erro — inclusive 429
+                return true;
+            })
             ->post(
                 "https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}",
                 [
@@ -66,6 +69,11 @@ PROMPT;
             );
 
         if (!$response->successful()) {
+            // Se for 429 (rate limit), lança exceção para o retry pegar
+            if ($response->status() === 429) {
+                Log::warning('GeminiProvider: rate limit atingido (429), aguardando retry...');
+                throw new \RuntimeException('Gemini rate limit: ' . $response->status());
+            }
             Log::error('GeminiProvider: erro HTTP', [
                 'status' => $response->status(),
                 'body'   => substr($response->body(), 0, 500),

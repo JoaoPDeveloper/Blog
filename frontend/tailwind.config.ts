@@ -8,6 +8,7 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // marquee animation is defined in globals.css (includes hover-pause rule)
       colors: {
         bg: '#0f1117',
         bg2: '#1a1d27',

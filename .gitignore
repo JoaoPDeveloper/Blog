@@ -1,8 +1,8 @@
 # Variáveis de ambiente — NUNCA versionar arquivos .env reais
 .env
 backend/.env
-frontend/.env.local
-frontend/.env
+frontend/.env.local    # chaves secretas locais do Next.js — não commitar
+# frontend/.env.production NÃO está aqui — só tem URLs públicas, pode commitar
 
 # Dependências (geradas no build/install)
 backend/vendor/
@@ -33,3 +33,4 @@ Thumbs.db
 
 # Docker volumes locais
 docker-compose.override.yml
+node_modules
