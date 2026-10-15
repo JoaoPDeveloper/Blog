@@ -1,11 +1,12 @@
 import { getArticles } from '@/services/api';
+import type { Article } from '@/types';
 import HeroArticle from '@/components/articles/HeroArticle';
 import ArticleCard from '@/components/articles/ArticleCard';
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  let articles = [];
+  let articles: Article[] = [];
 
   try {
     const data = await getArticles({ per_page: 9 });
