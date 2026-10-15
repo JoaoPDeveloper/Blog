@@ -46,6 +46,19 @@ echo "==> Cacheando configurações..."
 php artisan config:cache --quiet 2>/dev/null || true
 php artisan route:cache --quiet 2>/dev/null || true
 
+# Rodar migrations automaticamente no deploy
+echo "==> Rodando migrations..."
+php artisan migrate --force --quiet 2>/dev/null || true
+
+# Seed inicial: só roda se não houver categorias cadastradas
+CATEGORY_COUNT=$(php artisan tinker --execute="echo App\Models\Category::count();" 2>/dev/null | tail -1)
+if [ "$CATEGORY_COUNT" = "0" ] || [ -z "$CATEGORY_COUNT" ]; then
+    echo "==> Rodando seed inicial..."
+    php artisan db:seed --force --quiet 2>/dev/null || true
+else
+    echo "==> Seed já foi executado ($CATEGORY_COUNT categorias), pulando."
+fi
+
 # Scheduler em background
 echo "==> Iniciando scheduler de tarefas em background..."
 while true; do

@@ -22,49 +22,36 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Categories
+        // Categorias
         $ia = Category::firstOrCreate(
             ['slug' => 'inteligencia-artificial'],
-            [
-                'name'        => 'Inteligência Artificial',
-                'description' => 'Notícias sobre IA, modelos de linguagem, ferramentas e tendências do setor.',
-                'is_active'   => true,
-            ]
+            ['name' => 'Inteligência Artificial', 'description' => 'Notícias sobre IA, modelos de linguagem, ferramentas e tendências.', 'is_active' => true]
         );
 
         $jogos = Category::firstOrCreate(
             ['slug' => 'jogos'],
-            [
-                'name'        => 'Jogos',
-                'description' => 'Lançamentos, atualizações, promoções e novidades do mundo dos games.',
-                'is_active'   => true,
-            ]
+            ['name' => 'Jogos', 'description' => 'Lançamentos, atualizações, promoções e novidades do mundo dos games.', 'is_active' => true]
         );
 
         $animes = Category::firstOrCreate(
             ['slug' => 'animes-mangas'],
-            [
-                'name'        => 'Animes & Mangás',
-                'description' => 'Anúncios de temporadas, estreias, trailers e notícias de estúdios e eventos.',
-                'is_active'   => true,
-            ]
+            ['name' => 'Animes & Mangás', 'description' => 'Anúncios de temporadas, estreias, trailers e notícias de estúdios.', 'is_active' => true]
         );
 
-        // Sources
+        // Fontes ativas (queries em inglês — IA gera artigo em PT-BR)
         Source::firstOrCreate(
             ['name' => 'NewsAPI — IA'],
             [
-                'base_url'      => 'https://newsapi.org/v2/everything',
+                'base_url'      => 'https://newsapi.org/v2',
                 'source_type'   => 'api',
                 'category_id'   => $ia->id,
-                'language'      => 'pt',
+                'language'      => 'en',
                 'is_active'     => true,
-                'trust_level'   => 7,
+                'trust_level'   => 8,
                 'configuration' => [
+                    'query'     => 'artificial intelligence AI OpenAI Google Gemini LLM',
+                    'language'  => 'en',
                     'apiKeyEnv' => 'NEWSAPI_KEY',
-                    'query'     => 'inteligência artificial OR machine learning OR LLM',
-                    'language'  => 'pt',
-                    'pageSize'  => 5,
                 ],
             ]
         );
@@ -72,21 +59,38 @@ class DatabaseSeeder extends Seeder
         Source::firstOrCreate(
             ['name' => 'NewsAPI — Jogos'],
             [
-                'base_url'      => 'https://newsapi.org/v2/everything',
+                'base_url'      => 'https://newsapi.org/v2',
                 'source_type'   => 'api',
                 'category_id'   => $jogos->id,
-                'language'      => 'pt',
+                'language'      => 'en',
                 'is_active'     => true,
-                'trust_level'   => 7,
+                'trust_level'   => 8,
                 'configuration' => [
+                    'query'     => 'video games PlayStation Xbox Nintendo PC gaming release',
+                    'language'  => 'en',
                     'apiKeyEnv' => 'NEWSAPI_KEY',
-                    'query'     => 'games jogos videogame lançamento',
-                    'language'  => 'pt',
-                    'pageSize'  => 5,
                 ],
             ]
         );
 
+        Source::firstOrCreate(
+            ['name' => 'NewsAPI — Animes'],
+            [
+                'base_url'      => 'https://newsapi.org/v2',
+                'source_type'   => 'api',
+                'category_id'   => $animes->id,
+                'language'      => 'en',
+                'is_active'     => true,
+                'trust_level'   => 8,
+                'configuration' => [
+                    'query'     => 'anime manga crunchyroll season premiere trailer',
+                    'language'  => 'en',
+                    'apiKeyEnv' => 'NEWSAPI_KEY',
+                ],
+            ]
+        );
+
+        // Fontes inativas (implementação futura)
         Source::firstOrCreate(
             ['name' => 'Jikan API — Animes'],
             [
@@ -94,16 +98,9 @@ class DatabaseSeeder extends Seeder
                 'source_type'   => 'api',
                 'category_id'   => $animes->id,
                 'language'      => 'pt',
-                'is_active'     => true,
+                'is_active'     => false,
                 'trust_level'   => 8,
-                'configuration' => [
-                    'endpoint' => '/top/anime',
-                    'params'   => [
-                        'type'   => 'tv',
-                        'filter' => 'airing',
-                        'limit'  => 5,
-                    ],
-                ],
+                'configuration' => ['type' => 'top_airing'],
             ]
         );
 
@@ -114,26 +111,9 @@ class DatabaseSeeder extends Seeder
                 'source_type'   => 'rss',
                 'category_id'   => $jogos->id,
                 'language'      => 'pt',
-                'is_active'     => true,
-                'trust_level'   => 8,
-                'configuration' => [
-                    'feedUrl' => 'https://br.ign.com/feed.xml',
-                ],
-            ]
-        );
-
-        Source::firstOrCreate(
-            ['name' => 'GameVicio RSS'],
-            [
-                'base_url'      => 'https://www.gamevicio.com/rss/',
-                'source_type'   => 'rss',
-                'category_id'   => $jogos->id,
-                'language'      => 'pt',
-                'is_active'     => true,
-                'trust_level'   => 7,
-                'configuration' => [
-                    'feedUrl' => 'https://www.gamevicio.com/rss/',
-                ],
+                'is_active'     => false,
+                'trust_level'   => 9,
+                'configuration' => ['feedUrl' => 'https://br.ign.com/feed.xml'],
             ]
         );
     }
