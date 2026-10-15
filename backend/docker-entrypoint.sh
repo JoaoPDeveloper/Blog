@@ -3,9 +3,20 @@ set -e
 
 echo "==> Iniciando NovaTech Backend..."
 
+# Em produção (Railway/cloud), as variáveis são injetadas como env vars, sem arquivo .env
+# Em desenvolvimento (Docker local), o .env existe como arquivo
 if [ ! -f .env ]; then
-    echo "ERRO: backend/.env nao encontrado."
-    exit 1
+    if [ -n "$APP_KEY" ]; then
+        echo "==> Gerando .env a partir das variáveis de ambiente (modo produção)..."
+        # Exporta todas as variáveis relevantes para o arquivo .env que o Laravel usa
+        printenv | grep -E "^(APP_|DB_|REDIS_|CACHE_|QUEUE_|SESSION_|LOG_|GEMINI_|OPENAI_|NEWSAPI_|AI_|ELASTICSEARCH_|FRONTEND_|MAIL_)" | sort > .env
+        echo "==> .env criado com $(wc -l < .env) variáveis."
+    else
+        echo "ERRO: .env nao encontrado e APP_KEY nao definido."
+        echo "Em desenvolvimento: crie backend/.env"
+        echo "Em producao: configure as variaveis no Railway."
+        exit 1
+    fi
 fi
 
 # Instalar dependências apenas se vendor estiver ausente
@@ -18,7 +29,7 @@ else
     echo "==> Vendor OK, pulando composer install."
 fi
 
-# Limpar cache para garantir leitura do .env atual
+# Limpar cache
 echo "==> Limpando cache..."
 rm -f bootstrap/cache/services.php
 rm -f bootstrap/cache/packages.php
@@ -30,20 +41,18 @@ if grep -q "^APP_KEY=$" .env 2>/dev/null; then
     php artisan key:generate --ansi
 fi
 
-# Cachear config e rotas para melhor performance
+# Cachear config e rotas
 echo "==> Cacheando configurações..."
 php artisan config:cache --quiet 2>/dev/null || true
 php artisan route:cache --quiet 2>/dev/null || true
 
-# Iniciar o scheduler do Laravel em background
-# Executa 'php artisan schedule:run' a cada 60 segundos
+# Scheduler em background
 echo "==> Iniciando scheduler de tarefas em background..."
 while true; do
-    php artisan schedule:run --verbose --no-interaction >> storage/logs/scheduler.log 2>&1
+    php artisan schedule:run --no-interaction >> storage/logs/scheduler.log 2>&1
     sleep 60
 done &
-SCHEDULER_PID=$!
-echo "==> Scheduler rodando (PID: $SCHEDULER_PID)"
+echo "==> Scheduler rodando (PID: $!)"
 
 echo "==> Pronto. Iniciando servidor em 0.0.0.0:8000..."
 exec php -S 0.0.0.0:8000 server.php
