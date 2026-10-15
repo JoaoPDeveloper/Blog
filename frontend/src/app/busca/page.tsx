@@ -1,8 +1,10 @@
+import { Search } from 'lucide-react';
+
+import ArticleCard from '@/components/articles/ArticleCard';
 import { getArticles } from '@/services/api';
+import type { Article } from '@/types';
 
 export const dynamic = 'force-dynamic';
-import ArticleCard from '@/components/articles/ArticleCard';
-import { Search } from 'lucide-react';
 
 interface Props {
   searchParams: { q?: string };
@@ -11,7 +13,7 @@ interface Props {
 export default async function SearchPage({ searchParams }: Props) {
   const query = searchParams.q?.trim() ?? '';
 
-  let articles = [];
+  let articles: Article[] = [];
 
   if (query) {
     try {
@@ -24,7 +26,6 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Header */}
       <div className="border-b border-border pb-6">
         <div className="flex items-center gap-3">
           <Search className="h-6 w-6 text-muted" />
@@ -39,7 +40,6 @@ export default async function SearchPage({ searchParams }: Props) {
         )}
       </div>
 
-      {/* Results */}
       {!query ? (
         <p className="text-center text-muted">
           Use a barra de busca no topo para pesquisar artigos.
