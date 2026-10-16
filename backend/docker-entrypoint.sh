@@ -3,68 +3,56 @@ set -e
 
 echo "==> Iniciando NovaTech Backend..."
 
-# Em produção (Railway/cloud), as variáveis são injetadas como env vars, sem arquivo .env
-# Em desenvolvimento (Docker local), o .env existe como arquivo
+# Em produção, variáveis são injetadas como env vars — sem arquivo .env
 if [ ! -f .env ]; then
     if [ -n "$APP_KEY" ]; then
-        echo "==> Gerando .env a partir das variáveis de ambiente (modo produção)..."
-        # Exporta todas as variáveis relevantes para o arquivo .env que o Laravel usa
-        printenv | grep -E "^(APP_|DB_|REDIS_|CACHE_|QUEUE_|SESSION_|LOG_|GEMINI_|OPENAI_|NEWSAPI_|AI_|ELASTICSEARCH_|FRONTEND_|MAIL_)" | sort > .env
+        echo "==> Gerando .env a partir das variáveis de ambiente..."
+        printenv | grep -E "^(APP_|DB_|REDIS_|CACHE_|QUEUE_|SESSION_|LOG_|GEMINI_|OPENAI_|NEWSAPI_|AI_|ELASTICSEARCH_|FRONTEND_|MAIL_|ADMIN_)" | sort > .env
         echo "==> .env criado com $(wc -l < .env) variáveis."
     else
         echo "ERRO: .env nao encontrado e APP_KEY nao definido."
-        echo "Em desenvolvimento: crie backend/.env"
-        echo "Em producao: configure as variaveis no Railway."
         exit 1
     fi
 fi
 
-# Instalar dependências apenas se vendor estiver ausente
+# Instalar dependências se ausentes
 if [ ! -f vendor/autoload.php ]; then
-    echo "==> Instalando dependências (composer install)..."
+    echo "==> Instalando dependências..."
     composer install --no-scripts --no-autoloader --prefer-dist --no-interaction --quiet
-    echo "==> Gerando autoload..."
     composer dump-autoload --optimize --no-scripts --quiet
 else
-    echo "==> Vendor OK, pulando composer install."
+    echo "==> Vendor OK."
 fi
 
-# Limpar cache
-echo "==> Limpando cache..."
-rm -f bootstrap/cache/services.php
-rm -f bootstrap/cache/packages.php
-rm -f bootstrap/cache/config.php
+# Garantir diretórios de storage
+mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
-# Gerar APP_KEY se vazio
-if grep -q "^APP_KEY=$" .env 2>/dev/null; then
-    echo "==> Gerando APP_KEY..."
-    php artisan key:generate --ansi
-fi
-
-# Cachear config e rotas
-echo "==> Cacheando configurações..."
+# Limpar e recriar config cache
+rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php
 php artisan config:cache --quiet 2>/dev/null || true
-php artisan route:cache --quiet 2>/dev/null || true
+php artisan route:cache  --quiet 2>/dev/null || true
 
-# Rodar migrations automaticamente no deploy
+# Migrations
 echo "==> Rodando migrations..."
 php artisan migrate --force --quiet 2>/dev/null || true
 
-# Seed inicial (usa firstOrCreate — seguro rodar sempre)
+# Seed inicial
 echo "==> Rodando seed inicial..."
 php artisan db:seed --force --quiet 2>/dev/null || true
 
-# Garantir diretórios de storage (necessário em produção)
-mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views
-chmod -R 775 storage bootstrap/cache 2>/dev/null || true
-
 # Scheduler em background
-echo "==> Iniciando scheduler de tarefas em background..."
+echo "==> Iniciando scheduler..."
 while true; do
     php artisan schedule:run --no-interaction >> storage/logs/scheduler.log 2>&1
     sleep 60
 done &
 echo "==> Scheduler rodando (PID: $!)"
 
-echo "==> Pronto. Iniciando servidor em 0.0.0.0:${PORT:-8000}..."
-exec php -S 0.0.0.0:${PORT:-8000} server.php
+# Iniciar PHP-FPM em background
+echo "==> Iniciando PHP-FPM..."
+php-fpm --daemonize
+
+# Iniciar nginx em foreground (processo principal do container)
+echo "==> Iniciando nginx em 0.0.0.0:8080..."
+exec nginx -g 'daemon off;'
