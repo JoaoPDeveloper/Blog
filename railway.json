@@ -10,6 +10,8 @@
     "numReplicas": 1,
     "startCommand": "",
     "sleepApplication": false,
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 10,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }
