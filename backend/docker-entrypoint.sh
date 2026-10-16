@@ -50,14 +50,9 @@ php artisan route:cache --quiet 2>/dev/null || true
 echo "==> Rodando migrations..."
 php artisan migrate --force --quiet 2>/dev/null || true
 
-# Seed inicial: só roda se não houver categorias cadastradas
-CATEGORY_COUNT=$(php artisan tinker --execute="echo App\Models\Category::count();" 2>/dev/null | tail -1)
-if [ "$CATEGORY_COUNT" = "0" ] || [ -z "$CATEGORY_COUNT" ]; then
-    echo "==> Rodando seed inicial..."
-    php artisan db:seed --force --quiet 2>/dev/null || true
-else
-    echo "==> Seed já foi executado ($CATEGORY_COUNT categorias), pulando."
-fi
+# Seed inicial (usa firstOrCreate — seguro rodar sempre)
+echo "==> Rodando seed inicial..."
+php artisan db:seed --force --quiet 2>/dev/null || true
 
 # Garantir diretórios de storage (necessário em produção)
 mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views
