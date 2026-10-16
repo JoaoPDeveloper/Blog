@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
-
-export const dynamic = 'force-dynamic';
+import { getArticle } from '@/services/api';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Metadata } from 'next';
+
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: { slug: string };
