@@ -11,8 +11,8 @@ function getBaseUrl(): string {
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${getBaseUrl()}${path}`
 
-  // Timeout de 8s para evitar build travado no Vercel quando Railway está cold
-  const timeoutSignal = AbortSignal.timeout(8000)
+  // Timeout de 15s para Railway (cold start pode ser lento)
+  const timeoutSignal = AbortSignal.timeout(15000)
 
   const res = await fetch(url, {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },

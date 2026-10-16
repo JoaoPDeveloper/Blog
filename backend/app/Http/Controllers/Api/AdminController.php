@@ -33,16 +33,14 @@ class AdminController extends Controller
             return response()->json(['message' => 'Nenhuma fonte ativa.', 'dispatched' => 0]);
         }
 
-        $dispatched = 0;
-        foreach ($sources as $source) {
-            FetchNewsJob::dispatch($source->id);
-            $dispatched++;
-        }
+        // Rodar em background para não bloquear o request HTTP (proxy timeout)
+        $artisan = base_path('artisan');
+        exec("php {$artisan} news:fetch > /dev/null 2>&1 &");
 
         return response()->json([
-            'message'    => "Jobs despachados para {$dispatched} fonte(s).",
-            'dispatched' => $dispatched,
-            'sources'    => $sources->pluck('name'),
+            'message'  => 'Coleta iniciada em background.',
+            'sources'  => $sources->count(),
+            'tip'      => 'Aguarde ~2 minutos e verifique /api/v1/articles para os novos artigos.',
         ]);
     }
 
