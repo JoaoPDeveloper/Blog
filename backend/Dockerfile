@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo pdo_pgsql opcache pcntl \
     && rm -rf /var/lib/apt/lists/*
 
-# OPcache para produção
+# OPcache para producao
 RUN { \
     echo 'opcache.enable=1'; \
     echo 'opcache.memory_consumption=128'; \
@@ -25,15 +25,19 @@ RUN composer install --no-scripts --no-autoloader --prefer-dist --no-interaction
 COPY . .
 RUN composer dump-autoload --optimize --no-scripts
 
-# Template do nginx — PORT será substituído pelo envsubst no entrypoint
+# Template do nginx
 COPY nginx.conf /etc/nginx/conf.d/nginx.conf.template
 RUN rm -f /etc/nginx/sites-enabled/default
 
-# Redirecionar logs do nginx para stdout/stderr do Docker
+# Logs do nginx para stdout/stderr
 RUN ln -sf /dev/stdout /var/log/nginx/access.log \
     && ln -sf /dev/stderr /var/log/nginx/error.log
 
-# Wrapper que delega ao entrypoint no volume bind
+# Converter CRLF -> LF no entrypoint (Windows salva com \r\n que quebra o shebang no Linux)
+RUN sed -i 's/\r$//' /var/www/html/docker-entrypoint.sh \
+    && chmod +x /var/www/html/docker-entrypoint.sh
+
+# Wrapper
 RUN printf '#!/bin/bash\nchmod +x /var/www/html/docker-entrypoint.sh\nexec /var/www/html/docker-entrypoint.sh "$@"\n' \
     > /usr/local/bin/entrypoint-wrapper.sh \
     && chmod +x /usr/local/bin/entrypoint-wrapper.sh
