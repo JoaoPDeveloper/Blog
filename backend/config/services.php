@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'admin_token' => env('ADMIN_TOKEN', ''),
+
     'ai' => [
         'provider'             => env('AI_PROVIDER', 'gemini'),
         'max_articles_per_day' => (int) env('AI_MAX_ARTICLES_PER_DAY', 3),

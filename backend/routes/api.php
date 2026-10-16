@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\ArticleController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\AdminController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -12,7 +13,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/categories/{slug}', [CategoryController::class, 'show']);
 });
 
-// Rotas admin — auth via Sanctum será adicionado na Fase 5
+// Rotas admin via HTTP (protegidas por X-Admin-Token)
 Route::prefix('v1/admin')->group(function () {
+    Route::post('/fetch-news', [AdminController::class, 'fetchNews']);
+    Route::get('/status', [AdminController::class, 'status']);
     Route::apiResource('articles', ArticleController::class)->except(['index', 'show']);
 });
