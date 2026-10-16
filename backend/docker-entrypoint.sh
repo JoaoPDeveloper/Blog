@@ -2,14 +2,7 @@
 set -e
 
 echo "==> Iniciando NovaTech Backend..."
-<<<<<<< Updated upstream
 echo "==> PORT=$PORT"
-=======
-<<<<<<< Updated upstream
-=======
-echo "==> PORT=${PORT:-8080}"
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 
 # Em produção, variáveis são injetadas como env vars
 if [ ! -f .env ]; then
@@ -36,12 +29,9 @@ fi
 mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
-<<<<<<< Updated upstream
 # Cache do Laravel
 =======
-<<<<<<< Updated upstream
 # Limpar e recriar config cache
->>>>>>> Stashed changes
 rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php
 php artisan config:cache --quiet 2>/dev/null || echo "AVISO: config:cache falhou (continuando)"
 php artisan route:cache  --quiet 2>/dev/null || echo "AVISO: route:cache falhou (continuando)"
@@ -53,31 +43,11 @@ echo "==> Rodando seed..."
 php artisan db:seed --force --quiet 2>/dev/null || echo "AVISO: seed falhou (continuando)"
 
 # Scheduler em background
-<<<<<<< Updated upstream
-=======
-echo "==> Iniciando scheduler..."
-=======
-# Laravel cache
-rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php
-php artisan config:cache --quiet 2>/dev/null || echo "AVISO: config:cache falhou"
-php artisan route:cache  --quiet 2>/dev/null || echo "AVISO: route:cache falhou"
-
-# Migrations
-echo "==> Migrations..."
-php artisan migrate --force --quiet 2>/dev/null || echo "AVISO: migrate falhou"
-echo "==> Seed..."
-php artisan db:seed --force --quiet 2>/dev/null || echo "AVISO: seed falhou"
-
-# Scheduler
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 while true; do
     php artisan schedule:run --no-interaction >> storage/logs/scheduler.log 2>&1
     sleep 60
 done &
 echo "==> Scheduler PID: $!"
-
-<<<<<<< Updated upstream
 # Gerar nginx.conf substituindo PORT
 NGINX_PORT=${PORT:-8080}
 echo "==> Configurando nginx na porta $NGINX_PORT..."
@@ -87,8 +57,6 @@ envsubst '${PORT}' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/d
 nginx -t
 
 =======
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
 # Iniciar PHP-FPM em background
 echo "==> Iniciando PHP-FPM..."
 php-fpm -D
@@ -134,4 +102,3 @@ else
     ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || echo "(ss/netstat indisponível)"
     exit 1
 fi
->>>>>>> Stashed changes

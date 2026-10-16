@@ -1,0 +1,3 @@
+﻿# Forçar LF para scripts shell (nunca CRLF, mesmo no Windows)
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
