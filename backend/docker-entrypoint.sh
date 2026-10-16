@@ -2,8 +2,9 @@
 set -e
 
 echo "==> Iniciando NovaTech Backend..."
+echo "==> PORT=$PORT"
 
-# Em produção, variáveis são injetadas como env vars — sem arquivo .env
+# Em produção, variáveis são injetadas como env vars
 if [ ! -f .env ]; then
     if [ -n "$APP_KEY" ]; then
         echo "==> Gerando .env a partir das variáveis de ambiente..."
@@ -28,31 +29,37 @@ fi
 mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
 
-# Limpar e recriar config cache
+# Cache do Laravel
 rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php
-php artisan config:cache --quiet 2>/dev/null || true
-php artisan route:cache  --quiet 2>/dev/null || true
+php artisan config:cache --quiet 2>/dev/null || echo "AVISO: config:cache falhou (continuando)"
+php artisan route:cache  --quiet 2>/dev/null || echo "AVISO: route:cache falhou (continuando)"
 
-# Migrations
+# Migrations e seed
 echo "==> Rodando migrations..."
-php artisan migrate --force --quiet 2>/dev/null || true
-
-# Seed inicial
-echo "==> Rodando seed inicial..."
-php artisan db:seed --force --quiet 2>/dev/null || true
+php artisan migrate --force --quiet 2>/dev/null || echo "AVISO: migrate falhou (continuando)"
+echo "==> Rodando seed..."
+php artisan db:seed --force --quiet 2>/dev/null || echo "AVISO: seed falhou (continuando)"
 
 # Scheduler em background
-echo "==> Iniciando scheduler..."
 while true; do
     php artisan schedule:run --no-interaction >> storage/logs/scheduler.log 2>&1
     sleep 60
 done &
 echo "==> Scheduler rodando (PID: $!)"
 
+# Gerar nginx.conf substituindo PORT
+NGINX_PORT=${PORT:-8080}
+echo "==> Configurando nginx na porta $NGINX_PORT..."
+envsubst '${PORT}' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/conf.d/default.conf
+
+# Testar configuração do nginx
+nginx -t
+
 # Iniciar PHP-FPM em background
 echo "==> Iniciando PHP-FPM..."
-php-fpm --daemonize
+php-fpm -D
+echo "==> PHP-FPM iniciado."
 
-# Iniciar nginx em foreground (processo principal do container)
-echo "==> Iniciando nginx em 0.0.0.0:8080..."
+# Iniciar nginx em foreground (processo principal)
+echo "==> Iniciando nginx na porta $NGINX_PORT..."
 exec nginx -g 'daemon off;'
