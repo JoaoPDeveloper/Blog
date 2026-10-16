@@ -59,6 +59,10 @@ else
     echo "==> Seed já foi executado ($CATEGORY_COUNT categorias), pulando."
 fi
 
+# Garantir diretórios de storage (necessário em produção)
+mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views
+chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+
 # Scheduler em background
 echo "==> Iniciando scheduler de tarefas em background..."
 while true; do
