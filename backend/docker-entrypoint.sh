@@ -67,5 +67,5 @@ while true; do
 done &
 echo "==> Scheduler rodando (PID: $!)"
 
-echo "==> Pronto. Iniciando servidor em 0.0.0.0:8000..."
-exec php -S 0.0.0.0:8000 server.php
+echo "==> Pronto. Iniciando servidor em 0.0.0.0:${PORT:-8000}..."
+exec php -S 0.0.0.0:${PORT:-8000} server.php
