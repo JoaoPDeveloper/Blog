@@ -25,6 +25,7 @@ fi
 
 mkdir -p storage/logs storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
 chmod -R 775 storage bootstrap/cache 2>/dev/null || true
+chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
 
 rm -f bootstrap/cache/services.php bootstrap/cache/packages.php bootstrap/cache/config.php
 php artisan config:cache --quiet 2>/dev/null || echo "AVISO: config:cache falhou"

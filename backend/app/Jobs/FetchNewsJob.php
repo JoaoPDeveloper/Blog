@@ -6,6 +6,7 @@ use App\Models\AutomationRun;
 use App\Models\Source;
 use App\Services\NewsSources\JikanSource;
 use App\Services\NewsSources\NewsApiSource;
+use App\Support\SecretRedactor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -75,12 +76,14 @@ class FetchNewsJob implements ShouldQueue
             }
 
         } catch (\Throwable $e) {
+            // A mensagem pode conter a URL com a chave de API na query — sanitizar antes de gravar/logar
+            $message = SecretRedactor::redact($e->getMessage());
             $run->update([
                 'status'        => 'failed',
                 'finished_at'   => now(),
-                'error_summary' => $e->getMessage(),
+                'error_summary' => $message,
             ]);
-            Log::error("FetchNewsJob: erro em {$source->name}", ['error' => $e->getMessage()]);
+            Log::error("FetchNewsJob: erro em {$source->name}", ['error' => $message]);
             // Não re-throw — deixa o comando continuar para as próximas fontes
         }
     }

@@ -7,6 +7,7 @@ use App\Models\ArticleSource;
 use App\Models\AutomationRun;
 use App\Models\Category;
 use App\Services\AI\AIService;
+use App\Support\SecretRedactor;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -38,6 +39,7 @@ class GenerateArticleJob implements ShouldQueue
 
         if ($todayCount >= $maxArticles) {
             Log::info("GenerateArticleJob: limite diário de {$maxArticles} artigos atingido.");
+            $this->noteRun("Limite diário de {$maxArticles} artigos de IA atingido ({$todayCount} hoje).");
             return;
         }
 
@@ -55,6 +57,7 @@ class GenerateArticleJob implements ShouldQueue
 
         if (empty($result['title']) || empty($result['content'])) {
             Log::error('GenerateArticleJob: conteúdo inválido retornado pela IA.', ['result' => $result]);
+            $this->noteRun('IA retornou título/conteúdo vazio (verifique GEMINI_API_KEY, GEMINI_MODEL e os logs).', true);
             return;
         }
 
@@ -62,6 +65,7 @@ class GenerateArticleJob implements ShouldQueue
         $contentHash = md5($result['title'] . $result['content']);
         if (Article::where('content_hash', $contentHash)->exists()) {
             Log::info("GenerateArticleJob: artigo duplicado, ignorando.", ['hash' => $contentHash]);
+            $this->noteRun('Artigo duplicado (content_hash já existe), ignorado.');
             return;
         }
 
@@ -115,5 +119,44 @@ class GenerateArticleJob implements ShouldQueue
             'id'    => $article->id,
             'title' => $article->title,
         ]);
+    }
+
+    /**
+     * Chamado quando o job lança exceção (inclusive com QUEUE_CONNECTION=sync).
+     * A mensagem pode conter a URL com a chave de API — sanitizar antes de gravar/logar.
+     */
+    public function failed(\Throwable $e): void
+    {
+        $message = SecretRedactor::redact($e->getMessage());
+        Log::error('GenerateArticleJob: falhou', ['error' => $message]);
+        $this->noteRun($message, true);
+    }
+
+    /**
+     * Registra um resumo curto no AutomationRun. Só marca como failed quando $failed = true
+     * (limite diário e duplicado são apenas informativos). Os jobs de uma mesma fonte compartilham
+     * o run, então o resumo é acrescentado ao existente em vez de sobrescrevê-lo.
+     */
+    private function noteRun(string $summary, bool $failed = false): void
+    {
+        if (!$this->runId) {
+            return;
+        }
+
+        $previous = (string) AutomationRun::where('id', $this->runId)->value('error_summary');
+
+        $values = [];
+        if ($previous === '') {
+            $values['error_summary'] = $summary;
+        } elseif (!str_contains($previous, $summary)) {
+            $values['error_summary'] = $previous . ' | ' . $summary;
+        }
+        if ($failed) {
+            $values['status'] = 'failed';
+        }
+
+        if ($values) {
+            AutomationRun::where('id', $this->runId)->update($values);
+        }
     }
 }
