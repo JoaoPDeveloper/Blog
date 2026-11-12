@@ -1,9 +1,9 @@
-import type { Article, Category, PaginatedResponse } from '@/types'
+import type { Article, Category, PaginatedResponse, TrendingTag } from '@/types'
 
 // Server-side: nome do serviço Docker; Client-side: localhost com porta exposta
 function getBaseUrl(): string {
   if (typeof window === 'undefined') {
-    return process.env.API_URL || 'http://backend:8000/api/v1'
+    return process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1'
   }
   return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001/api/v1'
 }
@@ -27,6 +27,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 export async function getArticles(params?: {
   category?: string
+  tag?: string
   search?: string
   page?: number
   per_page?: number
@@ -53,4 +54,19 @@ export async function getCategories(): Promise<Category[]> {
   return apiFetch<Category[]>('/categories', {
     next: { revalidate: 600 }, // categorias mudam pouco — cache por 10 minutos
   })
+}
+
+// Nunca lança: qualquer falha (404, timeout, JSON inválido) vira lista vazia
+export async function getTrendingTags(limit = 12): Promise<TrendingTag[]> {
+  try {
+    const tags = await apiFetch<TrendingTag[]>(`/tags/trending?limit=${limit}`, {
+      next: { revalidate: 300 }, // cache por 5 minutos
+    })
+    if (!Array.isArray(tags)) return []
+    return tags.filter(
+      (tag) => typeof tag?.name === 'string' && typeof tag?.slug === 'string'
+    )
+  } catch {
+    return []
+  }
 }

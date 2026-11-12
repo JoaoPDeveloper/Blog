@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useI18n } from '@/i18n/I18nProvider';
+import { formatDate, getCategoryName } from '@/i18n/utils';
 import type { Article } from '@/types';
 
 const categoryColorMap: Record<string, string> = {
@@ -17,20 +17,12 @@ const categoryThumbMap: Record<string, { thumb: string; emoji: string }> = {
   'animes-mangas': { thumb: 'from-anime/30 to-anime/5', emoji: '🎌' },
 };
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  try {
-    return format(new Date(dateStr), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
-  } catch {
-    return '';
-  }
-}
-
 interface Props {
   article: Article;
 }
 
 export default function ArticleCard({ article }: Props) {
+  const { locale, dict } = useI18n();
   const colorClass =
     categoryColorMap[article.category?.slug ?? ''] ?? 'text-accent border-accent';
   const colors =
@@ -65,11 +57,13 @@ export default function ArticleCard({ article }: Props) {
         <span
           className={`inline-block w-fit rounded border px-2 py-0.5 text-xs font-semibold uppercase tracking-wider ${colorClass}`}
         >
-          {article.category?.name ?? 'Geral'}
+          {article.category
+            ? getCategoryName(dict, article.category)
+            : dict.article.fallbackCategory}
         </span>
 
         {/* Title */}
-        <h3 className="line-clamp-2 text-base font-bold text-white group-hover:text-accent2 transition-colors">
+        <h3 className="line-clamp-2 text-base font-bold text-fg group-hover:text-accent2 transition-colors">
           {article.title}
         </h3>
 
@@ -81,11 +75,11 @@ export default function ArticleCard({ article }: Props) {
         {/* Date */}
         <div className="mt-auto flex items-center justify-between">
           <span className="text-xs text-muted">
-            {formatDate(article.published_at)}
+            {formatDate(article.published_at, locale)}
           </span>
           {article.ai_provider && (
             <span className="rounded bg-bg3 px-1.5 py-0.5 text-xs text-muted">
-              IA
+              {dict.article.aiBadge}
             </span>
           )}
         </div>

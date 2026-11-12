@@ -1,12 +1,16 @@
-import { getArticles } from '@/services/api';
+import { getArticles, getTrendingTags } from '@/services/api';
 import type { Article } from '@/types';
 import HeroArticle from '@/components/articles/HeroArticle';
 import ArticleCard from '@/components/articles/ArticleCard';
+import TrendingTags from '@/components/tags/TrendingTags';
+import { getI18n } from '@/i18n/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
+  const { dict } = getI18n();
   let articles: Article[] = [];
+  const trendingTagsPromise = getTrendingTags(12);
 
   try {
     const data = await getArticles({ per_page: 9 });
@@ -15,14 +19,14 @@ export default async function HomePage() {
     // API unavailable — show empty state
   }
 
+  const trendingTags = await trendingTagsPromise;
+
   if (articles.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
         <span className="text-6xl">📰</span>
-        <h1 className="text-2xl font-bold text-white">Nenhum artigo publicado ainda</h1>
-        <p className="text-muted">
-          Volte em breve — nosso sistema de coleta está em operação.
-        </p>
+        <h1 className="text-2xl font-bold text-fg">{dict.home.emptyTitle}</h1>
+        <p className="text-muted">{dict.home.emptyText}</p>
       </div>
     );
   }
@@ -45,10 +49,13 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Trending hashtags */}
+      <TrendingTags tags={trendingTags} />
+
       {/* Grid */}
       {gridArticles.length > 0 && (
         <section>
-          <h2 className="mb-4 text-lg font-bold text-white">Últimas notícias</h2>
+          <h2 className="mb-4 text-lg font-bold text-fg">{dict.home.latest}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {gridArticles.map((article) => (
               <ArticleCard key={article.id} article={article} />

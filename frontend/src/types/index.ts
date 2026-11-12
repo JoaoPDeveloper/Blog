@@ -13,6 +13,10 @@ export interface Tag {
   slug: string;
 }
 
+export interface TrendingTag extends Tag {
+  articles_count: number;
+}
+
 export interface ArticleSource {
   id: number;
   article_id: number;

@@ -1,7 +1,10 @@
 # Variáveis de ambiente — NUNCA versionar arquivos .env reais
 .env
 backend/.env
-frontend/.env.local    # chaves secretas locais do Next.js — não commitar
+# Chaves secretas locais do Next.js — não commitar
+frontend/.env.local
+.env.local
+.env*.local
 # frontend/.env.production NÃO está aqui — só tem URLs públicas, pode commitar
 
 # Dependências (geradas no build/install)

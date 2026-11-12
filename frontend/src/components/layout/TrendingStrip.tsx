@@ -1,15 +1,9 @@
 import { getArticles } from '@/services/api'
-
-const fallbackTitles = [
-  'GPT-5 lançado com capacidades multimodais avançadas',
-  'GTA VI confirma data de lançamento em 2025',
-  'Demon Slayer: Infinity Castle chega ao cinema',
-  'Google Gemini 3.8 supera benchmarks da OpenAI',
-  'Nintendo anuncia novo título para Switch 2',
-]
+import { getI18n } from '@/i18n/server'
 
 export default async function TrendingStrip() {
-  let titles: string[] = fallbackTitles
+  const { dict } = getI18n()
+  let titles: string[] = dict.trending.fallbackTitles
 
   try {
     const data = await getArticles({ per_page: 8 })
@@ -24,11 +18,11 @@ export default async function TrendingStrip() {
   const doubled = [...titles, ...titles]
 
   return (
-    <div className="border-b border-[#2a2d3e] bg-[#1a1d27] py-2.5 overflow-hidden">
+    <div className="border-b border-border bg-bg2 py-2.5 overflow-hidden">
       <div className="flex items-center gap-0">
         {/* Label fixo */}
-        <div className="shrink-0 bg-[#6c63ff] px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white z-10 relative">
-          🔥 Em Alta
+        <div className="shrink-0 bg-accent px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-accent-fg z-10 relative">
+          🔥 {dict.trending.label}
         </div>
         {/* Faixa animada — pausa no hover */}
         <div className="overflow-hidden flex-1">
@@ -38,7 +32,7 @@ export default async function TrendingStrip() {
             {doubled.map((title, i) => (
               <span
                 key={i}
-                className="whitespace-nowrap text-sm text-[#8b8fa8] px-6 border-r border-[#2a2d3e] hover:text-white transition-colors cursor-default"
+                className="whitespace-nowrap text-sm text-muted px-6 border-r border-border hover:text-fg transition-colors cursor-default"
               >
                 {title}
               </span>

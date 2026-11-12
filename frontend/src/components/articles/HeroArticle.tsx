@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useI18n } from '@/i18n/I18nProvider';
+import { formatDate, getCategoryName } from '@/i18n/utils';
 import type { Article } from '@/types';
 
 const categoryGradientMap: Record<string, string> = {
@@ -17,20 +17,12 @@ const categoryEmojiMap: Record<string, string> = {
   'animes-mangas': '🎌',
 };
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return '';
-  try {
-    return format(new Date(dateStr), "d 'de' MMMM 'de' yyyy", { locale: ptBR });
-  } catch {
-    return '';
-  }
-}
-
 interface Props {
   article: Article;
 }
 
 export default function HeroArticle({ article }: Props) {
+  const { locale, dict } = useI18n();
   const slug = article.category?.slug ?? '';
   const gradient = categoryGradientMap[slug] ?? 'from-accent/20 to-transparent';
   const emoji = categoryEmojiMap[slug] ?? '📰';
@@ -60,16 +52,18 @@ export default function HeroArticle({ article }: Props) {
         >
           {emoji}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a1d27] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg2 to-transparent" />
       </div>
 
       {/* Content */}
       <div className="relative flex flex-col gap-3 p-6">
         <span className="w-fit rounded bg-accent/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-accent">
-          {article.category?.name ?? 'Destaque'}
+          {article.category
+            ? getCategoryName(dict, article.category)
+            : dict.article.featuredCategory}
         </span>
 
-        <h2 className="text-2xl font-bold leading-tight text-white group-hover:text-accent2 transition-colors">
+        <h2 className="text-2xl font-bold leading-tight text-fg group-hover:text-accent2 transition-colors">
           {article.title}
         </h2>
 
@@ -77,7 +71,7 @@ export default function HeroArticle({ article }: Props) {
           <p className="line-clamp-2 text-sm text-muted">{article.summary}</p>
         )}
 
-        <span className="text-xs text-muted">{formatDate(article.published_at)}</span>
+        <span className="text-xs text-muted">{formatDate(article.published_at, locale)}</span>
       </div>
     </Link>
   );

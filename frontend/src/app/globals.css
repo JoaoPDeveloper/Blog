@@ -3,16 +3,34 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0f1117;
-  --bg2: #1a1d27;
-  --bg3: #23263a;
-  --accent: #6c63ff;
-  --accent2: #00d4ff;
-  --border: #2a2d3e;
-  --muted: #8b8fa8;
-  --ai: #a78bfa;
-  --games: #34d399;
-  --anime: #f87171;
+  color-scheme: light;
+  --bg: 245 246 250;
+  --bg2: 255 255 255;
+  --bg3: 236 238 246;
+  --fg: 17 20 31;
+  --accent: 72 62 214;
+  --accent-fg: 255 255 255;
+  --accent2: 14 116 144;
+  --border: 211 215 230;
+  --muted: 89 94 117;
+  --ai: 126 34 206;
+  --games: 4 120 87;
+  --anime: 200 30 30;
+}
+.dark {
+  color-scheme: dark;
+  --bg: 15 17 23;
+  --bg2: 26 29 39;
+  --bg3: 35 38 58;
+  --fg: 255 255 255;
+  --accent: 108 99 255;
+  --accent-fg: 255 255 255;
+  --accent2: 0 212 255;
+  --border: 42 45 62;
+  --muted: 139 143 168;
+  --ai: 167 139 250;
+  --games: 52 211 153;
+  --anime: 248 113 113;
 }
 
 @layer utilities {
