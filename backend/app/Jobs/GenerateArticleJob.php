@@ -8,6 +8,7 @@ use App\Models\AutomationRun;
 use App\Models\Category;
 use App\Services\AI\AIService;
 use App\Support\SecretRedactor;
+use App\Support\SourceUrl;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -40,6 +41,16 @@ class GenerateArticleJob implements ShouldQueue
         if ($todayCount >= $maxArticles) {
             Log::info("GenerateArticleJob: limite diário de {$maxArticles} artigos atingido.");
             $this->noteRun("Limite diário de {$maxArticles} artigos de IA atingido ({$todayCount} hoje).");
+            return;
+        }
+
+        // Defesa em profundidade: a mesma notícia (URL da fonte) não gera outro artigo.
+        // Checar antes de chamar a IA evita custo desnecessário.
+        if (SourceUrl::alreadyUsed([$this->sourceItem['url'] ?? '']) !== []) {
+            Log::info('GenerateArticleJob: URL da fonte já usada, ignorando.', [
+                'url' => $this->sourceItem['url'] ?? '',
+            ]);
+            $this->noteRun('Notícia já usada (URL da fonte já existe em article_sources), ignorada.');
             return;
         }
 

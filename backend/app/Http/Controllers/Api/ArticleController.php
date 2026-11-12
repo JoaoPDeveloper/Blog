@@ -20,6 +20,12 @@ class ArticleController extends Controller
             });
         }
 
+        if ($request->filled('tag') && is_string($request->tag)) {
+            $query->whereHas('tags', function ($q) use ($request) {
+                $q->where('slug', $request->tag);
+            });
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

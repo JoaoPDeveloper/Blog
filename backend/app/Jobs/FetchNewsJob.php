@@ -7,6 +7,7 @@ use App\Models\Source;
 use App\Services\NewsSources\JikanSource;
 use App\Services\NewsSources\NewsApiSource;
 use App\Support\SecretRedactor;
+use App\Support\SourceUrl;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -51,19 +52,34 @@ class FetchNewsJob implements ShouldQueue
             $items = $fetcher->fetch($config);
             Log::info("FetchNewsJob: {$source->name} retornou " . count($items) . " itens.");
 
-            $run->update([
+            // Descartar notícias cuja URL já virou artigo (com 3 coletas por dia o topo da NewsAPI se repete).
+            // Itens sem URL não são descartados por este critério.
+            $usedUrls = SourceUrl::alreadyUsed(array_column($items, 'url'));
+            $newItems = array_values(array_filter($items, function ($item) use ($usedUrls) {
+                $url = SourceUrl::normalize($item['url'] ?? '');
+                return $url === '' || !in_array($url, $usedUrls, true);
+            }));
+            $alreadyUsed = count($items) - count($newItems);
+
+            $runValues = [
                 'status'          => 'completed',
                 'finished_at'     => now(),
                 'items_processed' => count($items),
                 'items_succeeded' => 0,
-                'metadata'        => ['items_fetched' => count($items)],
-            ]);
+                'metadata'        => ['items_fetched' => count($items), 'items_already_used' => $alreadyUsed],
+            ];
+            if ($alreadyUsed > 0 && !$newItems) {
+                // Informativo: o run continua 'completed'
+                $runValues['error_summary'] = 'Nenhum item novo: todas as notícias já foram usadas.';
+                Log::info("FetchNewsJob: {$source->name} sem itens novos ({$alreadyUsed} já usados).");
+            }
+            $run->update($runValues);
 
             $source->update(['last_fetched_at' => now()]);
 
             // Gerar até 2 artigos por fonte com pausa entre eles (evitar rate limit do Gemini)
             $maxPerSource = 2;
-            foreach (array_slice($items, 0, $maxPerSource) as $index => $item) {
+            foreach (array_slice($newItems, 0, $maxPerSource) as $index => $item) {
                 if ($index > 0) {
                     sleep(8); // 8s entre chamadas (free tier Gemini: ~10 RPM)
                 }

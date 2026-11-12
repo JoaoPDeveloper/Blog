@@ -9,7 +9,7 @@ return [
     'allowed_origins' => array_filter(
         array_map(
             'trim',
-            explode(',', env('FRONTEND_URL', 'http://localhost:3000'))
+            explode(',', env('FRONTEND_URL', 'http://localhost:3002'))
         )
     ),
 

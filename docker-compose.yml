@@ -45,6 +45,7 @@ services:
       dockerfile: Dockerfile
     environment:
       APP_ENV: local
+      PORT: "8000"
       DB_HOST: postgres
       REDIS_HOST: redis
       ELASTICSEARCH_HOST: elasticsearch:9200
@@ -69,7 +70,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+      - "3002:3002"
     depends_on:
       - backend
 
