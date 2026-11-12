@@ -62,3 +62,14 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Mesmos keyframes, sentido oposto; também pausa com foco por teclado dentro da faixa */
+.animate-marquee-reverse {
+  animation: marquee 35s linear infinite;
+  animation-direction: reverse;
+}
+
+.animate-marquee-reverse:hover,
+.animate-marquee-reverse:focus-within {
+  animation-play-state: paused;
+}

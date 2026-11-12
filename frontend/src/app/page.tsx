@@ -1,8 +1,7 @@
-import { getArticles, getTrendingTags } from '@/services/api';
+import { getArticles } from '@/services/api';
 import type { Article } from '@/types';
 import HeroArticle from '@/components/articles/HeroArticle';
 import ArticleCard from '@/components/articles/ArticleCard';
-import TrendingTags from '@/components/tags/TrendingTags';
 import { getI18n } from '@/i18n/server';
 
 export const dynamic = 'force-dynamic';
@@ -10,7 +9,6 @@ export const dynamic = 'force-dynamic';
 export default async function HomePage() {
   const { dict } = getI18n();
   let articles: Article[] = [];
-  const trendingTagsPromise = getTrendingTags(12);
 
   try {
     const data = await getArticles({ per_page: 9 });
@@ -18,8 +16,6 @@ export default async function HomePage() {
   } catch {
     // API unavailable — show empty state
   }
-
-  const trendingTags = await trendingTagsPromise;
 
   if (articles.length === 0) {
     return (
@@ -48,9 +44,6 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
-
-      {/* Trending hashtags */}
-      <TrendingTags tags={trendingTags} />
 
       {/* Grid */}
       {gridArticles.length > 0 && (
